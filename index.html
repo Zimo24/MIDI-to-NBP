@@ -21,10 +21,10 @@
     <input type="file" id="midiFileInput" accept=".mid">
     <button onclick="convertMidiToNBP()">Convert</button>
     <textarea id="output" rows="20" cols="50" readonly></textarea>
+    <br>
+    <button id="downloadButton" onclick="downloadNBP()" style="display: none;">Download NBP File</button>
 
-    <script src="
-    https://cdn.jsdelivr.net/npm/@tonejs/midi@2.0.28/build/Midi.min.js
-    "></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonejs/midi@2.0.27/build/Midi.min.js"></script>
     <script>
         // Function to convert MIDI note number to note name
         function midiNoteToName(noteNumber) {
@@ -37,6 +37,7 @@
         async function convertMidiToNBP() {
             const fileInput = document.getElementById('midiFileInput');
             const output = document.getElementById('output');
+            const downloadButton = document.getElementById('downloadButton');
             if (fileInput.files.length === 0) {
                 alert("Please select a MIDI file.");
                 return;
@@ -54,7 +55,6 @@
                 midi.tracks.forEach(track => {
                     track.notes.forEach(note => {
                         const noteNumber = note.midi;
-                        const noteName = midiNoteToName(noteNumber);
                         const startTime = note.time.toFixed(2);
                         const endTime = (note.time + note.duration).toFixed(2);
                         
@@ -63,9 +63,23 @@
                 });
 
                 output.value = nbpData;
+                downloadButton.style.display = 'block';
             };
 
             reader.readAsArrayBuffer(file);
+        }
+
+        function downloadNBP() {
+            const output = document.getElementById('output').value;
+            const blob = new Blob([output], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'output.nbp';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
     </script>
 </body>
