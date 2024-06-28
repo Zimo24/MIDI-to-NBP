@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIDI to NBP Converter</title>
+</head>
+<body>
+    <h1>MIDI to NBP Converter</h1>
+    <p>
+        <strong>NBP Format:</strong><br>
+        NBP (Note Block Player) is a format used for importing musical notes into Scratch projects. Each note is represented by three lines:<br>
+        1. Note number (MIDI note number where 60 is Middle C, 61 is C#, 62 is D, etc.)<br>
+        2. Start time in seconds<br>
+        3. End time in seconds
+    </p>
+    <p>
+        <strong>MIDI Format:</strong><br>
+        MIDI (Musical Instrument Digital Interface) is a standard for representing musical information in a digital format. MIDI files contain tracks with musical events, such as note on/off events, which include the note number, velocity (intensity), and timing information.
+    </p>
+    <input type="file" id="midiFileInput" accept=".mid">
+    <button onclick="convertMidiToNBP()">Convert</button>
+    <textarea id="output" rows="20" cols="50" readonly></textarea>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tonejs/midi@2.0.27/build/Tone.min.js"></script>
+    <script>
+        // Function to convert MIDI note number to note name
+        function midiNoteToName(noteNumber) {
+            const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+            const octave = Math.floor(noteNumber / 12) - 1;
+            const note = noteNames[noteNumber % 12];
+            return note + octave;
+        }
+
+        async function convertMidiToNBP() {
+            const fileInput = document.getElementById('midiFileInput');
+            const output = document.getElementById('output');
+            if (fileInput.files.length === 0) {
+                alert("Please select a MIDI file.");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = async function(event) {
+                const arrayBuffer = event.target.result;
+                const midi = new Midi(arrayBuffer);
+
+                let nbpData = "";
+
+                midi.tracks.forEach(track => {
+                    track.notes.forEach(note => {
+                        const noteNumber = note.midi;
+                        const noteName = midiNoteToName(noteNumber);
+                        const startTime = note.time.toFixed(2);
+                        const endTime = (note.time + note.duration).toFixed(2);
+                        
+                        nbpData += `${noteNumber}\n${startTime}\n${endTime}\n`;
+                    });
+                });
+
+                output.value = nbpData;
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+    </script>
+</body>
+</html>
