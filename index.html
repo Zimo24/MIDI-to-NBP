@@ -135,8 +135,6 @@
                     nbpData += `${noteNumber}\n${startTime}\n${endTime}\n`;
                 });
 
-                // Set textarea id dynamically to reflect the filename
-                output.id = `${file.name.replace('.mid', '')}-nbp`;
                 output.value = nbpData;
                 downloadButton.classList.remove('hidden');
                 playButton.classList.remove('hidden');
@@ -178,7 +176,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${output.id}.nbp`;
+            a.download = 'output.nbp';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
