@@ -4,48 +4,96 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MIDI to NBP Converter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;800&display=swap" rel="stylesheet">
     <style>
-        @font-face {
-            font-family: 'NotoSans_online_security'; 
-            src: url(chrome-extension://llbcnfanfmjhpedaedhbcnpgeepdnnok/assets/fonts/noto-sans-regular.woff);
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
         }
-
-        @font-face {
-            font-family: 'NotoSans_medium_online_security'; 
-            src: url(chrome-extension://llbcnfanfmjhpedaedhbcnpgeepdnnok/assets/fonts/noto-sans-medium.ttf);
+        h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2.5em;
+            font-weight: 600;
+            color: #333;
         }
-
-        @font-face {
-            font-family: 'NotoSans_bold_online_security'; 
-            src: url(chrome-extension://llbcnfanfmjhpedaedhbcnpgeepdnnok/assets/fonts/noto-sans-bold.woff);
+        p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #666;
+            max-width: 700px;
+            text-align: center;
+            margin: 20px 0;
         }
-
-        @font-face {
-            font-family: 'NotoSans_semibold_online_security'; 
-            src: url(chrome-extension://llbcnfanfmjhpedaedhbcnpgeepdnnok/assets/fonts/noto-sans-semibold.ttf);
+        input[type="file"] {
+            margin: 20px 0;
+            padding: 10px;
+            font-size: 1em;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        textarea {
+            width: 80%;
+            max-width: 700px;
+            height: 300px;
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin: 20px 0;
+            resize: none;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .hidden {
+            display: none;
         }
     </style>
-    <link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&amp;family=Poppins:ital,wght@0,400;0,500;0,600;0,800;1,400;1,500;1,600;1,800&amp;display=swap">
 </head>
 <body>
-    <h1>MIDI to NBP Converter</h1>
-    <p>
-        <strong>NBP Format:</strong><br>
-        NBP (Note Block Player) is a format used for importing musical notes into Scratch projects. Each note is represented by three lines:<br>
-        1. Note number (MIDI note number where 60 is Middle C, 61 is C#, 62 is D, etc.)<br>
-        2. Start time in seconds<br>
-        3. End time in seconds
-    </p>
-    <p>
-        <strong>MIDI Format:</strong><br>
-        MIDI (Musical Instrument Digital Interface) is a standard for representing musical information in a digital format. MIDI files contain tracks with musical events, such as note on/off events, which include the note number, velocity (intensity), and timing information.
-    </p>
-    <input type="file" id="midiFileInput" accept=".mid">
-    <button onclick="convertMidiToNBP()">Convert</button>
-    <button id="playButton" style="display: none;">Play Combined MIDI</button>
-    <textarea id="output" rows="20" cols="50" readonly=""></textarea>
-    <br>
-    <button id="downloadButton" onclick="downloadNBP()" style="display: none;">Download NBP File</button>
+    <div class="container">
+        <h1>MIDI to NBP Converter</h1>
+        <p>
+            <strong>NBP Format:</strong><br>
+            NBP (Note Block Player) is a format used for importing musical notes into Scratch projects. Each note is represented by three lines:<br>
+            1. Note number (MIDI note number where 60 is Middle C, 61 is C#, 62 is D, etc.)<br>
+            2. Start time in seconds<br>
+            3. End time in seconds
+        </p>
+        <p>
+            <strong>MIDI Format:</strong><br>
+            MIDI (Musical Instrument Digital Interface) is a standard for representing musical information in a digital format. MIDI files contain tracks with musical events, such as note on/off events, which include the note number, velocity (intensity), and timing information.
+        </p>
+        <input type="file" id="midiFileInput" accept=".mid">
+        <br>
+        <button onclick="convertMidiToNBP()">Convert</button>
+        <button id="playButton" class="hidden">Play Combined MIDI</button>
+        <textarea id="output" rows="20" cols="50" readonly=""></textarea>
+        <br>
+        <button id="downloadButton" class="hidden" onclick="downloadNBP()">Download NBP File</button>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@tonejs/midi@2.0.27/build/Midi.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.39/Tone.js"></script>
@@ -87,9 +135,11 @@
                     nbpData += `${noteNumber}\n${startTime}\n${endTime}\n`;
                 });
 
+                // Set textarea id dynamically to reflect the filename
+                output.id = `${file.name.replace('.mid', '')}-nbp`;
                 output.value = nbpData;
-                downloadButton.style.display = 'block';
-                playButton.style.display = 'block';
+                downloadButton.classList.remove('hidden');
+                playButton.classList.remove('hidden');
 
                 // Play the combined MIDI when the button is clicked
                 playButton.addEventListener('click', function() {
@@ -128,15 +178,12 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'output.nbp';
+            a.download = `${output.id}.nbp`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
     </script>
-
-    <span id="PING_CONTENT_DLS_POPUP" style="display: none;"></span>
-    <div style="background-color: transparent; border: none; bottom: 15px; display: block; margin: 0px; opacity: 1; padding: 0px; position: fixed; right: 15px; z-index: 2147483647;"></div>
 </body>
 </html>
