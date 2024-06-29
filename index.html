@@ -4,6 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MIDI to NBP Converter</title>
+    <style>
+        @font-face {
+            font-family: 'NotoSans_online_security'; 
+            src: url(chrome-extension://llbcnfanfmjhpedaedhbcnpgeepdnnok/assets/fonts/noto-sans-regular.woff);
+        }
+
+        @font-face {
+            font-family: 'NotoSans_medium_online_security'; 
+            src: url(chrome-extension://llbcnfanfmjhpedaedhbcnpgeepdnnok/assets/fonts/noto-sans-medium.ttf);
+        }
+
+        @font-face {
+            font-family: 'NotoSans_bold_online_security'; 
+            src: url(chrome-extension://llbcnfanfmjhpedaedhbcnpgeepdnnok/assets/fonts/noto-sans-bold.woff);
+        }
+
+        @font-face {
+            font-family: 'NotoSans_semibold_online_security'; 
+            src: url(chrome-extension://llbcnfanfmjhpedaedhbcnpgeepdnnok/assets/fonts/noto-sans-semibold.ttf);
+        }
+    </style>
+    <link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&amp;family=Poppins:ital,wght@0,400;0,500;0,600;0,800;1,400;1,500;1,600;1,800&amp;display=swap">
 </head>
 <body>
     <h1>MIDI to NBP Converter</h1>
@@ -20,11 +42,13 @@
     </p>
     <input type="file" id="midiFileInput" accept=".mid">
     <button onclick="convertMidiToNBP()">Convert</button>
-    <textarea id="output" rows="20" cols="50" readonly></textarea>
+    <button id="playButton" style="display: none;">Play Combined MIDI</button>
+    <textarea id="output" rows="20" cols="50" readonly=""></textarea>
     <br>
     <button id="downloadButton" onclick="downloadNBP()" style="display: none;">Download NBP File</button>
 
     <script src="https://cdn.jsdelivr.net/npm/@tonejs/midi@2.0.27/build/Midi.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.39/Tone.js"></script>
     <script>
         // Function to convert MIDI note number to note name
         function midiNoteToName(noteNumber) {
@@ -38,6 +62,7 @@
             const fileInput = document.getElementById('midiFileInput');
             const output = document.getElementById('output');
             const downloadButton = document.getElementById('downloadButton');
+            const playButton = document.getElementById('playButton');
             if (fileInput.files.length === 0) {
                 alert("Please select a MIDI file.");
                 return;
@@ -50,23 +75,51 @@
                 const arrayBuffer = event.target.result;
                 const midi = new Midi(arrayBuffer);
 
+                // Combine all channels into one
+                let combinedMidi = combineChannels(midi);
+                
                 let nbpData = "";
-
-                midi.tracks.forEach(track => {
-                    track.notes.forEach(note => {
-                        const noteNumber = note.midi;
-                        const startTime = note.time.toFixed(2);
-                        const endTime = (note.time + note.duration).toFixed(2);
-                        
-                        nbpData += `${noteNumber}\n${startTime}\n${endTime}\n`;
-                    });
+                combinedMidi.forEach(note => {
+                    const noteNumber = note.midi;
+                    const startTime = note.time.toFixed(2);
+                    const endTime = (note.time + note.duration).toFixed(2);
+                    
+                    nbpData += `${noteNumber}\n${startTime}\n${endTime}\n`;
                 });
 
                 output.value = nbpData;
                 downloadButton.style.display = 'block';
+                playButton.style.display = 'block';
+
+                // Play the combined MIDI when the button is clicked
+                playButton.addEventListener('click', function() {
+                    playCombinedMidi(combinedMidi);
+                });
             };
 
             reader.readAsArrayBuffer(file);
+        }
+
+        function combineChannels(midi) {
+            const combinedTracks = [];
+            midi.tracks.forEach(track => {
+                track.notes.forEach(note => {
+                    combinedTracks.push(note);
+                });
+            });
+
+            // Sort events by time to maintain the correct order
+            combinedTracks.sort((a, b) => a.time - b.time);
+
+            return combinedTracks;
+        }
+
+        function playCombinedMidi(combinedTracks) {
+            const synth = new Tone.Synth().toDestination();
+
+            combinedTracks.forEach(note => {
+                synth.triggerAttackRelease(note.name, note.duration, note.time);
+            });
         }
 
         function downloadNBP() {
@@ -82,5 +135,8 @@
             URL.revokeObjectURL(url);
         }
     </script>
+
+    <span id="PING_CONTENT_DLS_POPUP" style="display: none;"></span>
+    <div style="background-color: transparent; border: none; bottom: 15px; display: block; margin: 0px; opacity: 1; padding: 0px; position: fixed; right: 15px; z-index: 2147483647;"></div>
 </body>
 </html>
