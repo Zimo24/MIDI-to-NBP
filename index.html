@@ -83,7 +83,7 @@
                     const startTime = note.time.toFixed(2);
                     const endTime = (note.time + note.duration).toFixed(2);
                     
-                    nbpData += `${noteNumber}\n${startTime}\n${endTime}\n`;
+                    nbpData += `${noteNumber}\n${startTime+5}\n${endTime+5}\n`;
                 });
 
                 output.value = nbpData;
