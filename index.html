@@ -80,8 +80,8 @@
                 let nbpData = "";
                 combinedMidi.forEach(note => {
                     const noteNumber = note.midi;
-                    const startTime = note.time.toFixed(2);
-                    const endTime = (note.time + note.duration).toFixed(2);
+                    const startTime = (note.time + 5).toFixed(2); // Add 5-second delay
+                    const endTime = (note.time + note.duration + 5).toFixed(2); // Add 5-second delay
                     
                     nbpData += `${noteNumber}\n${startTime}\n${endTime}\n`;
                 });
