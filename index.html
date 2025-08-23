@@ -83,7 +83,7 @@
                     const startTime = (note.time + 5).toFixed(2); // Add 5-second delay
                     const endTime = (note.time + note.duration + 5).toFixed(2); // Add 5-second delay
                     
-                    nbpData += `${noteNumber}\n${startTime}\n${endTime}\n`;
+                    nbpData += `${noteNumber}\n${startTime+5}\n${endTime+5}\n`;
                 });
 
                 output.value = nbpData;
